@@ -1,0 +1,9 @@
+{
+  "name": "tiktok-buffer",
+  "description": "Write TikTok captions, schedule or draft TikTok posts through Buffer (optionally uploading clips via Cloudflare R2), and report post stats. Every post is previewed and needs your yes.",
+  "author": { "name": "WHAU888", "url": "https://github.com/WHAU888" },
+  "homepage": "https://github.com/WHAU888/tiktok-buffer-skill",
+  "repository": "https://github.com/WHAU888/tiktok-buffer-skill",
+  "license": "MIT",
+  "keywords": ["tiktok", "buffer", "social-media", "scheduling", "captions", "analytics"]
+}

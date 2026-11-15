@@ -1,0 +1,12 @@
+{
+  "name": "whau888-skills",
+  "owner": { "name": "WHAU888", "url": "https://github.com/WHAU888" },
+  "description": "Claude Code skills by WHAU888.",
+  "plugins": [
+    {
+      "name": "tiktok-buffer",
+      "source": "./",
+      "description": "Write TikTok captions, schedule or draft TikTok posts through Buffer, and report post stats."
+    }
+  ]
+}
