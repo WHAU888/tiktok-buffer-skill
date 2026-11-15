@@ -98,7 +98,64 @@ Your keys in `~/.config/tiktok-buffer/` stay until you delete that folder.
 
 ### Without the plugin system
 
-Copy `skills/tiktok-buffer/` to `~/.claude/skills/tiktok-buffer/`. Update by copying it again.
+The plugin is the easiest way to get updates, but you can also install the skill folder (`skills/tiktok-buffer/`) directly.
+
+| Option | Where it works | Updates | Scheduling & stats |
+|---|---|---|---|
+| A. Personal skill, with git | Claude Code, all your projects | `git pull` | ✅ |
+| B. Personal skill, ZIP download | Claude Code, all your projects | Download again | ✅ |
+| C. Project skill | Claude Code, one project (shared with everyone on it) | Through that project's repo | ✅ |
+| D. Claude account skill | claude.ai, Claude desktop chat, and synced to Claude Code | Upload again | Captions only outside Claude Code |
+
+Use one option only. Installing the same skill twice (for example as a plugin and a personal skill) makes it show up twice.
+
+#### A. Personal skill, with git (macOS / Linux)
+
+```bash
+git clone https://github.com/WHAU888/tiktok-buffer-skill.git ~/tiktok-buffer-skill
+```
+
+```bash
+mkdir -p ~/.claude/skills && ln -s ~/tiktok-buffer-skill/skills/tiktok-buffer ~/.claude/skills/tiktok-buffer
+```
+
+The second command makes a shortcut (symlink) from Claude Code's skills folder to the clone. To update:
+
+```bash
+git -C ~/tiktok-buffer-skill pull
+```
+
+On Windows, skip the symlink and copy the folder instead, as in option B.
+
+#### B. Personal skill, ZIP download (no git)
+
+1. On this page, click **Code → Download ZIP** and unzip it.
+2. Copy the `skills/tiktok-buffer` folder into your Claude skills folder, so you end up with `~/.claude/skills/tiktok-buffer/SKILL.md` (on Windows: `%USERPROFILE%\.claude\skills\tiktok-buffer\SKILL.md`).
+3. Start a new Claude Code session.
+
+To update, download again and replace the folder. Your keys in `~/.config/tiktok-buffer/` aren't touched.
+
+#### C. Project skill (share with a team through one project)
+
+Copy the folder into the project and commit it:
+
+```bash
+mkdir -p .claude/skills && cp -R /path/to/tiktok-buffer-skill/skills/tiktok-buffer .claude/skills/
+```
+
+```bash
+git add .claude/skills/tiktok-buffer && git commit -m "Add TikTok skill"
+```
+
+Everyone who opens that project in Claude Code gets the skill, with nothing to install. It only works inside that project. Each person still needs their own Buffer key on their own computer; never commit keys to the project.
+
+#### D. Claude account skill (claude.ai and the desktop chat)
+
+1. Download the ZIP as in option B and unzip it.
+2. Make a ZIP of just the `skills/tiktok-buffer` folder (the ZIP should contain the `tiktok-buffer` folder with `SKILL.md` inside).
+3. In Claude, open **Customize → Skills** and upload that ZIP.
+
+The skill then appears in your Claude account and syncs to Claude Code on your computers. In claude.ai and the desktop chat it runs in an online sandbox without your keys or files, so only captions, hashtags and content ideas work there; Claude will say so. For scheduling, drafts and stats, use Claude Code on your computer.
 
 ### Other tools (Codex, Copilot and more)
 
