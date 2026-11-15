@@ -27,27 +27,78 @@ Captions and hashtags work with none of the accounts.
 
 ---
 
-## Install
+## Install (Claude Code plugin)
 
-**As a Claude Code plugin (recommended).** In a Claude Code session:
+**Before you start:** you need [Claude Code](https://claude.com/claude-code) and Python 3. macOS usually has Python already; on Windows, install it from [python.org](https://www.python.org/downloads/).
+
+### Step 1: Install the plugin
+
+**Option A: from a terminal** (works for everyone, including the Claude desktop app):
+
+```bash
+claude plugin marketplace add WHAU888/tiktok-buffer-skill
+```
+
+```bash
+claude plugin install tiktok-buffer@whau888-skills
+```
+
+The first command adds this repo as a plugin source named `whau888-skills`; the second installs the `tiktok-buffer` plugin from it.
+
+**Option B: inside a Claude Code session in the terminal:**
 
 ```
 /plugin marketplace add WHAU888/tiktok-buffer-skill
 /plugin install tiktok-buffer@whau888-skills
 ```
 
-Or from a terminal:
+This opens a details panel. Choose where to install it ("user" = all your projects) and confirm.
+
+> In the Claude desktop app's Code tab, the `/plugin` panel may not open. Use Option A instead.
+
+**Check it worked:**
 
 ```bash
-claude plugin marketplace add WHAU888/tiktok-buffer-skill
-claude plugin install tiktok-buffer@whau888-skills
+claude plugin list
 ```
 
-Start a new session and ask "write a TikTok caption for…" to check it loads. The first time, Claude gives you a short briefing about what's needed.
+You should see `tiktok-buffer@whau888-skills` marked as enabled.
 
-To get updates: `claude plugin marketplace update whau888-skills`, then `claude plugin update tiktok-buffer@whau888-skills` (or turn on auto-update under `/plugin` → Marketplaces).
+### Step 2: Start a new session and try it
 
-**Or as a plain skill.** Copy `skills/tiktok-buffer/` to `~/.claude/skills/tiktok-buffer/`.
+Open a new Claude Code session and ask something like:
+
+> "Write a TikTok caption for a clip of my cat knocking a cup off the table"
+
+The skill loads as `tiktok-buffer:tiktok-buffer`. The first time, Claude gives you a short briefing about what you need and what to watch out for.
+
+### Step 3: Set up your accounts
+
+Captions work straight away. For scheduling, drafts and stats you need your **own** TikTok account, Buffer account and Buffer API key, and optionally Cloudflare R2. See [Set up](#set-up) below; Claude walks you through it too.
+
+### Updating
+
+```bash
+claude plugin marketplace update whau888-skills
+```
+
+```bash
+claude plugin update tiktok-buffer@whau888-skills
+```
+
+Or turn on auto-update once: in a Claude Code session in the terminal, open `/plugin` → Marketplaces → Enable auto-update. Updates load in your next session.
+
+### Removing
+
+```bash
+claude plugin uninstall tiktok-buffer@whau888-skills
+```
+
+Your keys in `~/.config/tiktok-buffer/` stay until you delete that folder.
+
+### Without the plugin system
+
+Copy `skills/tiktok-buffer/` to `~/.claude/skills/tiktok-buffer/`. Update by copying it again.
 
 ### Other tools (Codex, Copilot and more)
 
