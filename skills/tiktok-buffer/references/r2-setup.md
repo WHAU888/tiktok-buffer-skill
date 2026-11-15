@@ -13,7 +13,7 @@ Cloudflare's menu names change from time to time; describe the goal of each step
 5. **Account ID**: shown on the R2 overview page (or in the dashboard URL).
 6. **API token**: R2 → **Manage API tokens** → **Create API token** → permission **Object Read & Write**, limited to the `tiktok-clips` bucket only. Copy the **Access Key ID** and **Secret Access Key** (shown once).
 7. **Save it on the Mac**: in Terminal run
-   `python3 ${CLAUDE_SKILL_DIR}/scripts/storage.py setup`
+   `python3 ${CLAUDE_SKILL_DIR}/scripts/storage.py setup` (replace `${CLAUDE_SKILL_DIR}` with this skill's folder if your tool doesn't fill it in; use `python` on Windows)
    and answer the prompts. Keys are typed hidden. It then uploads a tiny test file, checks the link and deletes it.
 
 Afterwards: `storage.py list` shows locations, `storage.py test` re-runs the check, `storage.py default <name>` changes the default. Running `setup` again with a new name adds a second location.

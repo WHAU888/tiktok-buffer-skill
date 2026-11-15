@@ -318,7 +318,7 @@ def cmd_setup(_a) -> None:
     print(f"\nSaved location {name!r} (default: {cfg['default']!r}). Running a quick test...")
     try:
         self_test(name, loc)
-        print("\nAll good. Claude can now upload clips here.")
+        print("\nAll good. The TikTok skill can now upload clips here.")
     except StorageError as e:
         print(f"\nTest failed: {e}\nFix the setting in Cloudflare and run `storage.py test --location {name}`.")
 

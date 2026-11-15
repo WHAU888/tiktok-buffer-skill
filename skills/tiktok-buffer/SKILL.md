@@ -13,6 +13,8 @@ Scripts (Python standard library only; run any with `-h` for options):
 - `scripts/post_file.py`: posts a **local video file**: uploads it to the user's storage location, checks the link, creates the Buffer post, and later deletes the file (`cleanup`).
 - `scripts/storage.py`: storage locations (Cloudflare R2). `setup` is interactive and the user runs it themselves.
 
+**Paths.** `${CLAUDE_SKILL_DIR}` below means the folder that contains this SKILL.md. Claude Code fills it in automatically. If your tool leaves it as literal text (Codex, Copilot and others may), use the real path of this skill's folder instead; the scripts are in its `scripts/` subfolder. Use `python3` on macOS/Linux and `python` (or `py`) on Windows. The scripts need internet access to reach Buffer and R2, so if your tool runs commands in a sandbox without network, ask the user to allow it for this task.
+
 Whenever you use this skill for posting or analytics, first run `python3 ${CLAUDE_SKILL_DIR}/scripts/post_file.py cleanup` quietly. It deletes uploaded clips whose posts have gone out, so public copies don't linger. Mention it only if it deleted something or reports a problem.
 
 ## The one rule that matters: preview, then ask
@@ -31,7 +33,7 @@ Drafts (`--draft`) and reminders (`--reminder`) are the safer options: drafts ar
 
 At the start of any task with this skill, run `python3 ${CLAUDE_SKILL_DIR}/scripts/status.py` (add `--online` when the task needs Buffer). It's quick and local.
 
-If the scripts can't run, or can't reach Buffer (for example in claude.ai or the Claude desktop chat, where the skill runs in an online sandbox without the user's saved keys or files), don't walk the user through saving keys there. Say briefly that scheduling, drafts and stats need Claude Code on their own computer (with this skill installed as the `tiktok-buffer` plugin from github.com/WHAU888/tiktok-buffer-skill), and carry on with what does work here: captions, hashtags and content ideas.
+If the scripts can't run, or can't reach Buffer because you're in a hosted chat sandbox without the user's saved keys or files (for example a web or desktop chat app), don't walk the user through saving keys there. Say briefly that scheduling, drafts and stats need a coding agent running on their own computer (such as Claude Code, Codex or Copilot) with this skill installed (from github.com/WHAU888/tiktok-buffer-skill), and carry on with what does work here: captions, hashtags and content ideas. If the only problem is a sandbox blocking network access, ask the user to allow it instead.
 
 **If `briefed` is false**, this person hasn't used the skill before (it may have been shared with them). Before doing the task, give a short briefing in plain words. Keep it to one screen, and show only what's still missing under "What you need":
 
@@ -56,7 +58,7 @@ Then run `status.py --mark-briefed` so it isn't repeated, and carry on with what
 
 **If something is missing** (the `missing` list), whether briefed or not, help with just that item when the task needs it:
 - `buffer_key`: create a personal key at https://publish.buffer.com/settings/api. Save it in Terminal so it never appears in chat: copy the key, then run
-  `mkdir -p ~/.config/tiktok-buffer && pbpaste > ~/.config/tiktok-buffer/api_key && chmod 600 ~/.config/tiktok-buffer/api_key`, check with `wc -c ~/.config/tiktok-buffer/api_key` (should not be 0), then clear the clipboard with `pbcopy < /dev/null`. Or set `BUFFER_API_KEY` in their shell profile.
+  `mkdir -p ~/.config/tiktok-buffer && pbpaste > ~/.config/tiktok-buffer/api_key && chmod 600 ~/.config/tiktok-buffer/api_key`, check with `wc -c ~/.config/tiktok-buffer/api_key` (should not be 0), then clear the clipboard with `pbcopy < /dev/null` (these commands are macOS). On Windows or Linux: save the key as the only line of the file `~/.config/tiktok-buffer/api_key` (on Windows, `%USERPROFILE%\.config\tiktok-buffer\api_key`) with a text editor. Or, on any system, set the `BUFFER_API_KEY` environment variable.
 - `buffer_key_invalid`: the key was copied wrong or deleted. Make a new one and save it again.
 - `tiktok_not_connected_in_buffer` / `tiktok_disconnected`: connect or reconnect TikTok in Buffer's website (the API can't do it).
 - `storage_location`: only matters for posting local files; see the upload section below.
