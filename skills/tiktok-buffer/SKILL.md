@@ -31,6 +31,8 @@ Drafts (`--draft`) and reminders (`--reminder`) are the safer options: drafts ar
 
 At the start of any task with this skill, run `python3 ${CLAUDE_SKILL_DIR}/scripts/status.py` (add `--online` when the task needs Buffer). It's quick and local.
 
+If the scripts can't run, or can't reach Buffer (for example in claude.ai or the Claude desktop chat, where the skill runs in an online sandbox without the user's saved keys or files), don't walk the user through saving keys there. Say briefly that scheduling, drafts and stats need Claude Code on their own computer (with this skill installed as the `tiktok-buffer` plugin from github.com/WHAU888/tiktok-buffer-skill), and carry on with what does work here: captions, hashtags and content ideas.
+
 **If `briefed` is false**, this person hasn't used the skill before (it may have been shared with them). Before doing the task, give a short briefing in plain words. Keep it to one screen, and show only what's still missing under "What you need":
 
 > **Before we start — TikTok via Buffer**
