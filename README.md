@@ -151,9 +151,10 @@ Everyone who opens that project in Claude Code gets the skill, with nothing to i
 
 #### D. Claude account skill (claude.ai and the desktop chat)
 
-1. Download the ZIP as in option B and unzip it.
-2. Make a ZIP of just the `skills/tiktok-buffer` folder (the ZIP should contain the `tiktok-buffer` folder with `SKILL.md` inside).
-3. In Claude, open **Customize → Skills** and upload that ZIP.
+1. Download **`tiktok-buffer.skill`** from the [latest release](https://github.com/WHAU888/tiktok-buffer-skill/releases/latest) ([direct download](https://github.com/WHAU888/tiktok-buffer-skill/releases/latest/download/tiktok-buffer.skill)).
+2. In Claude, open **Customize → Skills** and upload that file. (If you're sent the file in a Claude chat, you can click **Save skill** on it instead.)
+
+No release handy? Make your own: download the ZIP as in option B, then zip just the `skills/tiktok-buffer` folder (the ZIP should contain the `tiktok-buffer` folder with `SKILL.md` inside) and upload that.
 
 The skill then appears in your Claude account and syncs to Claude Code on your computers. In claude.ai and the desktop chat it runs in an online sandbox without your keys or files, so only captions, hashtags and content ideas work there; Claude will say so. For scheduling, drafts and stats, use Claude Code on your computer.
 
