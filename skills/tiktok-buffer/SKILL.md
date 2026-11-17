@@ -10,7 +10,7 @@ This skill helps with four jobs: writing captions, scheduling posts, saving draf
 Scripts (Python standard library only; run any with `-h` for options):
 - `scripts/status.py`: what is set up (Buffer key, TikTok channel, storage), and whether the user has had the first-use briefing. Never prints keys.
 - `scripts/buffer.py`: talks to Buffer (channels, create from a link, posts/analytics).
-- `scripts/post_file.py`: posts a **local video file**: uploads it to the user's storage location, checks the link, creates the Buffer post, and later deletes the file (`cleanup`).
+- `scripts/post_file.py`: posts a **local video or photo**: uploads it to the user's storage location, checks the link, creates the Buffer post, and later deletes the file (`cleanup`).
 - `scripts/storage.py`: storage locations (Cloudflare R2). `setup` is interactive and the user runs it themselves.
 
 **Paths.** `${CLAUDE_SKILL_DIR}` below means the folder that contains this SKILL.md. Claude Code fills it in automatically. If your tool leaves it as literal text (Codex, Copilot and others may), use the real path of this skill's folder instead; the scripts are in its `scripts/` subfolder. Use `python3` on macOS/Linux and `python` (or `py`) on Windows. The scripts need internet access to reach Buffer and R2, so if your tool runs commands in a sandbox without network, ask the user to allow it for this task.
@@ -43,7 +43,7 @@ If the scripts can't run, or can't reach Buffer because you're in a hosted chat 
 > - A TikTok account.
 > - A Buffer account (free plan is fine) with your TikTok connected in Buffer's website.
 > - A Buffer API key saved on this computer (I'll show you how; never paste it into chat).
-> - Optional: Cloudflare R2 storage, only if you want me to post video files straight from your computer. Without it you can still give me a public video link, or upload in Buffer / the TikTok app.
+> - Optional: Cloudflare R2 storage, only if you want me to post videos or photos straight from your computer. Without it you can still give me a public link, or upload in Buffer / the TikTok app.
 > - Captions and hashtags need none of this.
 >
 > **Good to know**
@@ -93,8 +93,10 @@ Keep video captions under 2,200 characters including hashtags (Buffer's TikTok l
 
 When the user gives a file path instead of a link, use `post_file.py post <file> --channel <id> ...` (same caption and schedule options as `buffer.py create`, plus `--location`).
 
+Videos (.mp4, .mov, .webm) become TikTok video posts. Photos (.jpg, .jpeg, .png, .webp) become TikTok photo posts; add `--title` for the photo post's title (Buffer's TikTok `title` field). One file per post; for a multi-photo carousel, host the images and use `buffer.py create` with several `--image-url`. A photo was confirmed working as a Buffer draft on 2026-11-17; Buffer keeps pointing at the uploaded link rather than copying the file, so it must stay up until the post is sent.
+
 1. Run it **without** `--yes`. It checks the file (type, size, length), picks the storage location and prints one preview covering both the upload and the post. Nothing is uploaded.
-2. Show the preview, and always spell out where the clip goes and that it is reachable by link until the post is sent (public mode), then deleted. Uploading makes the video reachable by anyone with the link even if the TikTok account is private, which matters for family or children's clips. Say so plainly when it applies.
+2. Show the preview, and always spell out where the clip goes and that it is reachable by link until the post is sent (public mode), then deleted. Uploading makes the video or photo reachable by anyone with the link even if the TikTok account is private, which matters for family or children's clips. Say so plainly when it applies.
 3. One clear yes covers upload + schedule. Re-run with `--yes`. If the link check or Buffer fails after the upload, the script deletes the file and nothing is scheduled; pass the message on.
 
 Location rules (the script enforces them; follow the error `code`):

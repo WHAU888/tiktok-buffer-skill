@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Post a local video file to TikTok via Buffer, using a storage location for the link.
+"""Post a local video or photo to TikTok via Buffer, using a storage location for the link.
 
 Commands:
   post FILE --channel ID (--text ... | --text-file ...) [schedule options] [--location NAME] [--yes]
@@ -30,6 +30,7 @@ import storage  # noqa: E402
 
 PENDING_FILE = storage.CONFIG_DIR / "pending.json"
 VIDEO_EXTS = {".mp4", ".mov", ".webm"}
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 PLACEHOLDER_URL = "https://upload.pending/clip"
 
 
@@ -42,16 +43,23 @@ def save_pending(items: list) -> None:
     PENDING_FILE.write_text(json.dumps(items, indent=2) + "\n")
 
 
-def check_video(path: Path) -> dict:
+def check_media(path: Path) -> dict:
+    """Validate a local video or photo. Returns info including kind: video | image."""
     if not path.is_file():
         buffer.fail(f"file not found: {path}")
-    if path.suffix.lower() not in VIDEO_EXTS:
-        buffer.fail(f"{path.name} is not a video TikTok accepts (use .mp4, .mov or .webm)")
+    ext = path.suffix.lower()
+    if ext in VIDEO_EXTS:
+        kind = "video"
+    elif ext in IMAGE_EXTS:
+        kind = "image"
+    else:
+        buffer.fail(f"{path.name} is not a file TikTok accepts "
+                    "(videos: .mp4, .mov, .webm; photos: .jpg, .jpeg, .png, .webp)")
     size = path.stat().st_size
     if size == 0:
         buffer.fail(f"{path.name} is empty")
-    info = {"file": str(path), "sizeMB": round(size / 1_048_576, 1)}
-    if shutil.which("ffprobe"):
+    info = {"file": str(path), "kind": kind, "sizeMB": round(size / 1_048_576, 1)}
+    if kind == "video" and shutil.which("ffprobe"):
         try:
             r = subprocess.run(
                 ["ffprobe", "-v", "error", "-show_entries", "format=duration",
@@ -76,7 +84,8 @@ def presign_expiry(args) -> int | None:
 
 def cmd_post(args) -> None:
     src = Path(args.file).expanduser().resolve()
-    video = check_video(src)
+    media = check_media(src)
+    kind = media["kind"]
     try:
         loc_name, loc = storage.choose_location(args.location)
     except storage.StorageError as e:
@@ -85,11 +94,14 @@ def cmd_post(args) -> None:
     expires = presign_expiry(args) if mode == "presigned" else None
 
     # Validate the post itself before touching storage.
-    args.video_url, args.image_url, args.title = PLACEHOLDER_URL, None, None
+    if kind == "video":
+        args.video_url, args.image_url = PLACEHOLDER_URL, None
+    else:
+        args.video_url, args.image_url = None, [PLACEHOLDER_URL]
     inp = buffer.build_create_input(args)
 
     plan = {
-        "video": video,
+        "media": media,
         "upload": {
             "location": loc_name, "bucket": loc.get("bucket"), "linkType": mode,
             "fileName": "random, hard to guess",
@@ -125,10 +137,10 @@ def cmd_post(args) -> None:
         ctype = storage.check_link(url)
     except storage.StorageError as e:
         undo(f"{e}.")
-    if ctype and not ctype.startswith("video/"):
-        undo(f"the link opens but serves {ctype!r}, not a video.")
+    if ctype and not ctype.startswith(f"{kind}/"):
+        undo(f"the link opens but serves {ctype!r}, not a {'video' if kind == 'video' else 'photo'}.")
 
-    inp["assets"][0]["video"]["url"] = url
+    inp["assets"][0][kind]["url"] = url
     try:
         post = buffer.create_post(inp)
     except buffer.ApiError as e:
@@ -179,7 +191,7 @@ def cmd_pending(_a) -> None:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
-    c = sub.add_parser("post", help="upload a local video and create the Buffer post")
+    c = sub.add_parser("post", help="upload a local video or photo and create the Buffer post")
     c.add_argument("file")
     c.add_argument("--channel", required=True)
     txt = c.add_mutually_exclusive_group(required=True)
@@ -191,7 +203,8 @@ def main() -> None:
     c.add_argument("--draft", action="store_true")
     c.add_argument("--reminder", action="store_true")
     c.add_argument("--ai-generated", action="store_true")
-    c.add_argument("--thumbnail-offset-ms", type=int)
+    c.add_argument("--thumbnail-offset-ms", type=int, help="video only: cover frame in ms")
+    c.add_argument("--title", help="photo only: title for the TikTok photo post")
     c.add_argument("--location", help="storage location name (default rules apply if omitted)")
     c.add_argument("--yes", action="store_true", help="upload and send (only after user approval)")
     c.set_defaults(fn=cmd_post)

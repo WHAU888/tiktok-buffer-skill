@@ -7,6 +7,7 @@ You talk to the agent normally:
 - "Write a caption for a clip of my dog catching a frisbee"
 - "Schedule ~/Movies/dance.mp4 for Saturday 8pm with that caption"
 - "Save it as a Buffer draft instead"
+- "Post ~/Pictures/beach.jpg as a TikTok photo draft"
 - "How did my TikToks do this week?"
 
 The agent always shows you a preview and waits for your **yes** before anything is uploaded, scheduled or posted.
@@ -21,7 +22,7 @@ The agent always shows you a preview and waits for your **yes** before anything 
 | **TikTok account** | Posting | Free |
 | **Buffer account** with TikTok connected | Scheduling, drafts, stats | Free plan works |
 | **Buffer API key** saved on your computer | Scheduling, drafts, stats | Free |
-| **Cloudflare R2** (optional) | Posting video files straight from your computer | Free tier is usually enough; Cloudflare asks for a payment method |
+| **Cloudflare R2** (optional) | Posting videos or photos straight from your computer | Free tier is usually enough; Cloudflare asks for a payment method |
 
 Captions and hashtags work with none of the accounts.
 
@@ -232,7 +233,7 @@ Follow [`skills/tiktok-buffer/references/r2-setup.md`](skills/tiktok-buffer/refe
 | `skills/tiktok-buffer/SKILL.md` | Instructions Claude follows |
 | `skills/tiktok-buffer/scripts/status.py` | Checks what's set up (never shows keys) |
 | `skills/tiktok-buffer/scripts/buffer.py` | Talks to Buffer: channels, posts, stats |
-| `skills/tiktok-buffer/scripts/post_file.py` | Uploads a local clip, schedules it, cleans up afterwards |
+| `skills/tiktok-buffer/scripts/post_file.py` | Uploads a local video or photo, schedules or drafts it, cleans up afterwards |
 | `skills/tiktok-buffer/scripts/storage.py` | Sets up and tests R2 storage |
 | `skills/tiktok-buffer/references/` | Buffer API notes and the R2 setup guide |
 
