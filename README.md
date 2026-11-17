@@ -7,6 +7,7 @@ You talk to the agent normally:
 - "Write a caption for a clip of my dog catching a frisbee"
 - "Schedule ~/Movies/dance.mp4 for Saturday 8pm with that caption"
 - "Save it as a Buffer draft instead"
+- "Schedule my draft for Friday 8pm"
 - "Post ~/Pictures/beach.jpg as a TikTok photo draft"
 - "How did my TikToks do this week?"
 

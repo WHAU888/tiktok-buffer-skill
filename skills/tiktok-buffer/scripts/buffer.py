@@ -8,6 +8,9 @@ Commands:
   channels                      List organizations and their TikTok channels.
   create ...                    Build a TikTok post. Prints a preview only,
                                 unless --yes is given.
+  schedule ID (--at T | --queue | --now | --to-draft)
+                                Schedule a Buffer draft or reschedule a post.
+                                Preview only, unless --yes is given.
   posts --org ID [--channel ID] List recent posts with metrics.
   post ID                       One post with metrics.
 
@@ -216,6 +219,117 @@ def cmd_create(args) -> None:
     out({"post": create_post(inp)})
 
 
+# ---------- schedule / reschedule an existing post ----------
+
+SCHEDULABLE = {"draft", "scheduled", "error"}
+
+
+def get_post(post_id: str) -> dict:
+    data = gql(
+        """query($id: PostId!) { post(input: { id: $id }) {
+          id status text dueAt channelId schedulingType shareMode
+          assets { type source }
+          metadata { ... on TiktokPostMetadata { title isAiGenerated } }
+        } }""",
+        {"id": post_id},
+    )
+    post = data.get("post")
+    if not post:
+        raise ApiError(f"Buffer has no post with id {post_id}")
+    return post
+
+
+def build_schedule_input(post: dict, args) -> dict:
+    """editPost input. Buffer rejects edits that leave out text/media (despite its docs saying
+    omitted fields are kept), so the current caption, media and TikTok metadata are always resent."""
+    if post["status"] not in SCHEDULABLE:
+        fail(f"this post is {post['status']!r}; only draft, scheduled or failed (error) posts can be (re)scheduled")
+    choices = [bool(args.at), args.queue, args.now, args.to_draft]
+    if sum(choices) != 1:
+        fail("choose exactly one of --at, --queue, --now, --to-draft")
+
+    assets = []
+    for a in post.get("assets") or []:
+        kind = (a.get("type") or "").lower()
+        if kind not in ("image", "video"):
+            fail(f"post has a {kind or 'unknown'} asset this command can't resend; reschedule it on buffer.com")
+        assets.append({kind: {"url": a["source"]}})
+    if not assets:
+        fail("post has no photo or video; TikTok posts need one")
+
+    inp: dict = {"id": post["id"], "text": post.get("text") or "", "assets": assets}
+    meta = post.get("metadata") or {}
+    tiktok = {k: meta[k] for k in ("title", "isAiGenerated") if meta.get(k)}
+    if tiktok:
+        inp["metadata"] = {"tiktok": tiktok}
+    if args.reminder:
+        inp["schedulingType"] = "notification"
+    elif args.automatic:
+        inp["schedulingType"] = "automatic"
+    elif post.get("schedulingType"):
+        inp["schedulingType"] = post["schedulingType"]
+
+    if args.to_draft:
+        inp["saveToDraft"] = True
+    else:
+        inp["saveToDraft"] = False
+        if args.at:
+            inp["mode"] = "customScheduled"
+            inp["dueAt"] = to_utc_iso(args.at)
+        elif args.now:
+            inp["mode"] = "shareNow"
+        else:
+            inp["mode"] = "addToQueue"
+    return inp
+
+
+def edit_post(inp: dict) -> dict:
+    data = gql(
+        """mutation($input: EditPostInput!) { editPost(input: $input) {
+          ... on PostActionSuccess { post { id status dueAt schedulingType channelId } }
+          ... on MutationError { message }
+        } }""",
+        {"input": inp},
+    )
+    res = data.get("editPost") or {}
+    if "post" not in res:
+        raise ApiError(f"Buffer did not update the post: {res.get('message', 'no reason given')}")
+    return res["post"]
+
+
+def media_reachable(url: str) -> str | None:
+    """Return an error string if the media link doesn't open, else None."""
+    req = urllib.request.Request(url, headers={"Range": "bytes=0-0", "User-Agent": "tiktok-buffer-skill"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return None if resp.status in (200, 206) else f"HTTP {resp.status}"
+    except urllib.error.HTTPError as e:
+        return f"HTTP {e.code}"
+    except urllib.error.URLError as e:
+        return str(e.reason)
+
+
+def cmd_schedule(args) -> None:
+    post = get_post(args.id)
+    inp = build_schedule_input(post, args)
+    broken = {a[k]["url"]: err for a in inp["assets"] for k in a if (err := media_reachable(a[k]["url"]))}
+    if broken:
+        fail(f"the post's media link doesn't open ({'; '.join(broken.values())}), so TikTok couldn't get it. "
+             "Re-upload the file or fix the storage before scheduling.")
+    summary = {
+        "postId": post["id"],
+        "currentStatus": post["status"], "currentDueAt": post.get("dueAt"),
+        "caption": inp["text"], "media": [k for a in inp["assets"] for k in a],
+        "title": (inp.get("metadata") or {}).get("tiktok", {}).get("title"),
+        "change": ("back to draft" if args.to_draft else
+                   {"mode": inp["mode"], "dueAt": inp.get("dueAt"), "publishing": inp.get("schedulingType")}),
+    }
+    if not args.yes:
+        out({"preview": True, "note": "Nothing changed. Re-run with --yes after the user approves.", **summary})
+        return
+    out({"post": edit_post(inp)})
+
+
 # ---------- analytics ----------
 
 METRICS = "metrics { type name value unit } metricsUpdatedAt"
@@ -271,6 +385,18 @@ def main() -> None:
     c.add_argument("--thumbnail-offset-ms", type=int, help="video frame to use as cover, in ms")
     c.add_argument("--yes", action="store_true", help="actually send to Buffer (only after user approval)")
     c.set_defaults(fn=cmd_create)
+
+    s = sub.add_parser("schedule", help="schedule a Buffer draft, or reschedule a post (preview unless --yes)")
+    s.add_argument("id", help="Buffer post id (from `posts --status draft` or `posts --status scheduled`)")
+    s.add_argument("--at", help="new time, ISO 8601 with offset, e.g. 2026-11-20T19:00:00+08:00")
+    s.add_argument("--queue", action="store_true", help="put it in the channel's next queue slot")
+    s.add_argument("--now", action="store_true", help="share immediately")
+    s.add_argument("--to-draft", action="store_true", help="unschedule: move it back to drafts")
+    pub = s.add_mutually_exclusive_group()
+    pub.add_argument("--reminder", action="store_true", help="Buffer reminds the user to post by hand")
+    pub.add_argument("--automatic", action="store_true", help="Buffer publishes automatically")
+    s.add_argument("--yes", action="store_true", help="actually change it in Buffer (only after user approval)")
+    s.set_defaults(fn=cmd_schedule)
 
     ps = sub.add_parser("posts", help="list posts with metrics")
     ps.add_argument("--org", required=True, help="organization id")

@@ -89,6 +89,16 @@ Keep video captions under 2,200 characters including hashtags (Buffer's TikTok l
    - For long captions write them to a temp file and use `--text-file`.
 4. Preview → user's yes → run again with `--yes`. Report the post id, status and scheduled time back in the user's timezone.
 
+### Schedule a draft, or reschedule a post
+
+For a post that's already in Buffer ("schedule my draft for Friday 8pm", "move it to tomorrow", "unschedule it"):
+
+1. Find it: `buffer.py posts --org <org> --channel <channel> --status draft` (or `--status scheduled`). If more than one could match, show the first line of each caption and ask which.
+2. `buffer.py schedule <post-id> --at <time>` (or `--queue`, `--now`, `--to-draft`; add `--reminder` or `--automatic` to change how it publishes). Without `--yes` it changes nothing: it shows the caption, media, title, current status and the new time, and checks the media link still opens.
+3. Show that preview in the user's local time. Their request counts as the yes when it names the post (or there's only one candidate) and the time, and nothing in the preview is a surprise (wrong caption, broken media, a time in the past). Otherwise ask. Then re-run with `--yes` and report the new status and time.
+
+Only draft, scheduled and failed (`error`) posts can be scheduled. The command resends the current caption, media and TikTok title with the change, because Buffer rejects edits that leave them out. If the post's media came from this skill's upload step, its file stays on storage until the post is sent; `cleanup` handles it as usual.
+
 ### From a local file (upload step)
 
 When the user gives a file path instead of a link, use `post_file.py post <file> --channel <id> ...` (same caption and schedule options as `buffer.py create`, plus `--location`).
